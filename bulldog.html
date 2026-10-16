@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feed yo Bulldog</title>
+    <link rel="stylesheet" href="bulldogbundle.css">
+</head>
+
+<body>
+    <div class="game-container">
+        <!-- Health -->
+        <div class="health-section">
+            <div class="health-bar">
+                <div id="healthFill" class="health-fill"></div>
+                <span>Health</span>
+            </div>
+            <h1>Techie __ (__ Days Old)</h1>
+        </div>
+
+        <!-- Dog and leaderboard -->
+        <div class="main-info">
+            <div class="pet-image">
+                <img src="techxxii.jpg" alt="Pet">
+            </div>
+            <div class="leaderboard">
+                <h2>Leaderboard:</h2>
+                <ol>
+                    <li>name1</li>
+                    <li>name2</li>
+                    <li>name3</li>
+                    <li>name4</li>
+                    <li>name5</li>
+                    <li>name6</li>
+                </ol>
+            </div>
+        </div>
+
+
+        <!-- Stats, Bars, Buttons -->
+        <div class="stats">
+            <div class="stat-row">
+                <span class="stat-name">Food</span>
+                <div class="stat-bar">
+                    <div id="foodBar" class="stat-fill"></div>
+                </div>
+                <button onclick="increaseStat('foodBar')">+</button>
+            </div>
+
+            <div class="stat-row">
+                <span class="stat-name">Water</span>
+                <div class="stat-bar">
+                    <div id="waterBar" class="stat-fill"></div>
+                </div>
+                <button onclick="increaseStat('waterBar')">+</button>
+            </div>
+
+            <div class="stat-row">
+                <span class="stat-name">Bath</span>
+                <div class="stat-bar">
+                    <div id="bathBar" class="stat-fill"></div>
+                </div>
+                <button onclick="increaseStat('bathBar')">+</button>
+            </div>
+
+            <div class="stat-row">
+                <span class="stat-name">Sleep</span>
+                <div class="stat-bar">
+                    <div id="sleepBar" class="stat-fill"></div>
+                </div>
+                <button onclick="increaseStat('sleepBar')">+</button>
+            </div>
+        </div>
+    </div>
+    <script src="bulldogbundle.js"></script>
+</body>
+</html>
