@@ -17,6 +17,8 @@ class Bulldog {
         for (const s of ['food', 'water', 'bath', 'sleep']){
             if (!(this[s] > 0 && this[s] < this.max)){
                 this.isDead = true;
+            } else if (health <= 0){
+                this.isDead = true;
             }
         }
     }
@@ -26,6 +28,8 @@ class Bulldog {
             if (!(this[s] > (this.max * 0.15) && this[s] < (this.max * .85))){
                 this.isSick = true;
                 break;
+            } else if (health <= 15){
+                this.isDead = true;
             } else{
                 this.isSick = false;
             }
