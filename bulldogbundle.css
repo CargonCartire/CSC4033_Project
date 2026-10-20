@@ -89,6 +89,9 @@ body {
 
 .stats {
     margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 
@@ -96,6 +99,7 @@ body {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
+    width: 520px;
 }
 
 
@@ -106,7 +110,7 @@ body {
 
 
 .stat-bar {
-    width: 220px;
+    width: 320px;
     height: 25px;
     border: 2px solid #555;
     background-color: white;
@@ -115,7 +119,12 @@ body {
 
 .stat-fill {
     height: 100%;
-    background-color: #1877d2;
+    background-color: blue;
+}
+
+.stat-fill.danger {
+    height: 100%;
+    background-color: red;
 }
 
 
