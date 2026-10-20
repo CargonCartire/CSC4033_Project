@@ -65,7 +65,17 @@ function renderBulldog() {
         `Techie ${bulldog.num} (${bulldog.age} Days Old)`;
 
     for (const stat of ['food', 'water', 'bath', 'sleep']) {
-        document.getElementById(stat + 'Bar').style.width = (bulldog[stat] / bulldog.max) * 100 + '%';
+        const bar = document.getElementById(stat + 'Bar');
+        const percentage = (bulldog[stat] / bulldog.max) * 100;
+
+        bar.style.width = percentage + '%';
+
+        // Turn the bar red when it is at a certain danger zone
+        if (percentage < 15 || percentage > 85) {
+            bar.classList.add('danger');
+        } else {
+            bar.classList.remove('danger');
+        }
     }
 }
 
