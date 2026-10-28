@@ -14,24 +14,27 @@ class Bulldog {
     }
 
     checkDeath(){
+        this.isDead = false;
         for (const s of ['food', 'water', 'bath', 'sleep']){
-            if (!(this[s] > 0 && this[s] < this.max)){
+            if (this[s] <= 0 || this[s] >= this.max){
                 this.isDead = true;
-            } else if (health <= 0){
+                break;
+            } if (this.health <= 0){
                 this.isDead = true;
             }
         }
     }
 
     checkSick(){
+        this.isSick = false;
         for (const s of ['food', 'water', 'bath', 'sleep']){
-            if (!(this[s] > (this.max * 0.15) && this[s] < (this.max * .85))){
+            const percentage = (this[s] / this.max) * 100;
+            const bar = document.getElementById(s + 'Bar');
+            if (percentage < 15 || percentage > 85) {
                 this.isSick = true;
-                break;
-            } else if (health <= 15){
-                this.isDead = true;
-            } else{
-                this.isSick = false;
+                bar.classList.add('danger'); // Turn the bar red when it is at a certain danger zone
+            } else {
+                bar.classList.remove('danger');
             }
         }
     }
@@ -59,23 +62,38 @@ class Bulldog {
 };
 
 let bulldog = null;
+let affinity = 50;
 
 function renderBulldog() {
     document.querySelector('.health-section h1').textContent =
         `Techie ${bulldog.num} (${bulldog.age} Days Old)`;
+
+    bulldog.checkSick();
+    bulldog.checkDeath();
 
     for (const stat of ['food', 'water', 'bath', 'sleep']) {
         const bar = document.getElementById(stat + 'Bar');
         const percentage = (bulldog[stat] / bulldog.max) * 100;
 
         bar.style.width = percentage + '%';
+    }
 
-        // Turn the bar red when it is at a certain danger zone
-        if (percentage < 15 || percentage > 85) {
-            bar.classList.add('danger');
-        } else {
-            bar.classList.remove('danger');
-        }
+    const affinityBar = document.getElementById('affinityBar');
+    const affinityPercentage = (bulldog.affinity / bulldog.max) * 100;
+    affinityBar.style.width = affinityPercentage + '%';
+
+    const dogImage = document.querySelector('.pet-image img');
+    const newDogButton = document.getElementById('newDogButton');
+
+    if(bulldog.isDead){
+        dogImage.src = 'images/dawgdeath.png';
+        newDogButton.style.display = 'block';
+    } else if(bulldog.isSick){
+        dogImage.src = 'images/dawgsad.png';
+        newDogButton.style.display = 'none';
+    } else {
+        dogImage.src = 'images/dawghappy.png';
+        newDogButton.style.display = 'none';
     }
 }
 
@@ -85,6 +103,10 @@ function startGame(num = 1) {
 }
 
 function updateStat(barId) {
+    if (bulldog.isDead) {
+        return;
+    }
+
     const stat = barId.replace('Bar', '');
     bulldog.incrimStat(stat);
     renderBulldog();

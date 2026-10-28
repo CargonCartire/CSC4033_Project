@@ -53,6 +53,36 @@ body {
     font-size: 22px;
 }
 
+/* Affinity bar */
+
+.affinity-row {
+    display: flex;
+    justify-content: center;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.affinity-bar {
+    position: relative;
+    width: 320px;
+    height: 15px;
+    border: 2px solid #555;
+    background-color: white;
+}
+
+.affinity-fill {
+    height: 100%;
+    background-color: yellow;
+}
+
+.affinity-bar span {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    text-align: center;
+    font-size: 14px;
+}
 
 /* Dog and Leaderboard */
 
@@ -62,8 +92,29 @@ body {
     align-items: flex-start;
     gap: 20px;
     margin-top: 15px;
+    position: relative
 }
 
+.new-dog-section {
+    position: absolute;
+    left: 0;
+    top: 45px;
+}
+
+#newDogButton {
+    display: none;
+    width: 90px;
+    height: 50px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: white;
+    border: 2px solid #555;
+    cursor: pointer;
+}
+
+#newDogButton:hover {
+    background-color: #ddd;
+}
 
 .pet-image img {
     width: 140px;
@@ -145,7 +196,6 @@ body {
 #sleepBar {
     width: 50%;
 }
-
 
 /* Buttons */
 
