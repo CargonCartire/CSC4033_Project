@@ -15,13 +15,26 @@
                 <div id="healthFill" class="health-fill"></div>
                 <span>Health</span>
             </div>
+
+            <div class="affinity-row">
+                <div class="affinity-bar">
+                    <div id="affinityBar" class="affinity-fill"></div>
+                    <span>Affinity</span>
+                </div>
+            </div>
+            
             <h1>Techie __ (__ Days Old)</h1>
         </div>
 
         <!-- Dog and leaderboard -->
         <div class="main-info">
+            <div class="new-dog-section">
+                <button id="newDogButton" onclick="dogDeath()">
+                    New Dog
+                </button>
+            </div>
             <div class="pet-image">
-                <img src="techxxii.jpg" alt="Pet">
+                <img src="images/dawghappy.png" alt="Pet">
             </div>
             <div class="leaderboard">
                 <h2>Leaderboard:</h2>
@@ -70,6 +83,8 @@
                 </div>
                 <button onclick="updateStat('sleepBar')">+</button>
             </div>
+    </div>
+</div>
         </div>
     </div>
     <script src="bulldogbundle.js"></script>
