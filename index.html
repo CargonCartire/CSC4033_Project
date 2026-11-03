@@ -1,92 +1,58 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feed yo Bulldog</title>
-    <link rel="stylesheet" href="bulldogbundle.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log in</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
-
 <body>
-    <div class="game-container">
-        <!-- Health -->
-        <div class="health-section">
-            <div class="health-bar">
-                <div id="healthFill" class="health-fill"></div>
-                <span>Health</span>
-            </div>
+  <main class="card">
+    <h1>Welcome back</h1>
+    <p class="sub">Log in to your account.</p>
 
-            <div class="affinity-row">
-                <div class="affinity-bar">
-                    <div id="affinityBar" class="affinity-fill"></div>
-                    <span>Affinity</span>
-                </div>
-            </div>
-            
-            <h1>Techie __ (__ Days Old)</h1>
-        </div>
+    <form id="form" novalidate>
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" autocomplete="email" required>
 
-        <!-- Dog and leaderboard -->
-        <div class="main-info">
-            <div class="new-dog-section">
-                <button id="newDogButton" onclick="dogDeath()">
-                    New Dog
-                </button>
-            </div>
-            <div class="pet-image">
-                <img src="images/dawghappy.png" alt="Pet">
-            </div>
-            <div class="leaderboard">
-                <h2>Leaderboard:</h2>
-                <ol>
-                    <li>name1</li>
-                    <li>name2</li>
-                    <li>name3</li>
-                    <li>name4</li>
-                    <li>name5</li>
-                    <li>name6</li>
-                </ol>
-            </div>
-        </div>
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
 
+      <div id="error" class="error" role="alert"></div>
+      <button type="submit" id="submit">Log in</button>
+    </form>
 
-        <!-- Stats, Bars, Buttons -->
-        <div class="stats">
-            <div class="stat-row">
-                <span class="stat-name">Food</span>
-                <div class="stat-bar">
-                    <div id="foodBar" class="stat-fill"></div>
-                </div>
-                <button onclick="updateStat('foodBar')">+</button>
-            </div>
+    <p class="switch">Don't have an account? <a href="/signup.html">Create one</a></p>
+  </main>
 
-            <div class="stat-row">
-                <span class="stat-name">Water</span>
-                <div class="stat-bar">
-                    <div id="waterBar" class="stat-fill"></div>
-                </div>
-                <button onclick="updateStat('waterBar')">+</button>
-            </div>
+  <script>
+    const form = document.getElementById('form');
+    const errorBox = document.getElementById('error');
+    const submit = document.getElementById('submit');
 
-            <div class="stat-row">
-                <span class="stat-name">Bath</span>
-                <div class="stat-bar">
-                    <div id="bathBar" class="stat-fill"></div>
-                </div>
-                <button onclick="updateStat('bathBar')">+</button>
-            </div>
-
-            <div class="stat-row">
-                <span class="stat-name">Sleep</span>
-                <div class="stat-bar">
-                    <div id="sleepBar" class="stat-fill"></div>
-                </div>
-                <button onclick="updateStat('sleepBar')">+</button>
-            </div>
-    </div>
-</div>
-        </div>
-    </div>
-    <script src="bulldogbundle.js"></script>
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.classList.remove('show');
+      submit.disabled = true;
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: form.email.value,
+            password: form.password.value,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Login failed.');
+        window.location.href = '/dashboard.html';
+      } catch (err) {
+        errorBox.textContent = err.message;
+        errorBox.classList.add('show');
+      } finally {
+        submit.disabled = false;
+      }
+    });
+  </script>
 </body>
 </html>
