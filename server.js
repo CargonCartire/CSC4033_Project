@@ -197,4 +197,5 @@ app.get('/signup.html', servePage('signup.html'));
 app.get('/dashboard.html', servePage('dashboard.html'));
 app.get('/style.css', servePage('style.css'));
 
-app.listen(PORT, () => console.log(`Running on http://localhost:${PORT}`));
+const serverless = require('serverless-http');
+exports.handler = serverless(app);
