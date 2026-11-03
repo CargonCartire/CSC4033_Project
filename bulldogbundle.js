@@ -97,9 +97,41 @@ function renderBulldog() {
     }
 }
 
+async function renderLeaderboard() {
+    const list = document.getElementById('leaderboardList');
+
+    try {
+        const response = await fetch('link to API');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const users = await response.json();
+        const top = users.slice(0, 5);
+
+        list.innerHTML = '';
+
+        if (top.length === 0) {
+            const li = document.createElement('li');
+            li.textContent = 'No scores yet';
+            list.appendChild(li);
+            return;
+        }
+
+        for (const user of top) {
+            const li = document.createElement('li');
+            li.textContent = `${user.username} - ${user.score}`;
+            list.appendChild(li);
+        }
+
+    } catch (err) {
+        console.error('Leaderbaord failed to load:', err);
+        list.innerHTML = '<li>Leaderboard unavailable</li>';
+    }
+}
+
 function startGame(num = 1) {
     bulldog = new Bulldog(num);
     renderBulldog();
+    renderLeaderboard();
 }
 
 function updateStat(barId) {
