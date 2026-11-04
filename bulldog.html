@@ -90,3 +90,22 @@
     <script src="bulldogbundle.js"></script>
 </body>
 </html>
+<script>
+  async function checkLogin() {
+    try {
+      const response = await fetch('/api/me');
+
+      if (!response.ok) {
+        window.location.replace('/index.html');
+        return;
+      }
+
+      const user = await response.json();
+      console.log("Logged in as:", user.username);
+    } catch (error) {
+      window.location.replace('/index.html');
+    }
+  }
+
+  checkLogin();
+</script>
