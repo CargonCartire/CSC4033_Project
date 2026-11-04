@@ -178,6 +178,11 @@ body {
     background-color: red;
 }
 
+.stat-fill.warning {
+    height: 100%;
+    background-color: yellow;
+}
+
 
 /* Starting stats */
 
