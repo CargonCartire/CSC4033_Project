@@ -9,33 +9,30 @@ class Bulldog {
         this.water = 25,
         this.bath = 25,
         this.sleep = 25,
-        this.isDead = false,
-        this.isSick = false
+        this.sickLvl = 0,
+        this.isDead = false
     }
 
     checkDeath(){
         this.isDead = false;
-        for (const s of ['food', 'water', 'bath', 'sleep']){
-            if (this[s] <= 0 || this[s] >= this.max){
-                this.isDead = true;
-                break;
-            } if (this.health <= 0){
-                this.isDead = true;
-            }
+        if (this.health <= 0){
+            this.isDead = true;
         }
     }
 
     checkSick(){
-        this.isSick = false;
+        this.sickLvl = 0;
         for (const s of ['food', 'water', 'bath', 'sleep']){
             const percentage = (this[s] / this.max) * 100;
             const bar = document.getElementById(s + 'Bar');
-            if (percentage < 15 || percentage > 85) {
-                this.isSick = true;
-                bar.classList.add('danger'); // Turn the bar red when it is at a certain danger zone
-            } else {
-                bar.classList.remove('danger');
+            const isDanger = percentage < 15 || percentage > 85;
+            const isWarning = !isDanger && (percentage < 25 || percentage > 75);
+
+            if (isDanger){
+                this.sickLvl += 1;
             }
+            bar.classList.toggle('danger', isDanger);
+            bar.classList.toggle('warning', isWarning);
         }
     }
 
@@ -61,8 +58,10 @@ class Bulldog {
     }
 };
 
+let tick = 0;
 let bulldog = null;
 let affinity = 50;
+let intervalID = null;
 
 function renderBulldog() {
     document.querySelector('.health-section h1').textContent =
@@ -70,6 +69,7 @@ function renderBulldog() {
 
     bulldog.checkSick();
     bulldog.checkDeath();
+
 
     for (const stat of ['food', 'water', 'bath', 'sleep']) {
         const bar = document.getElementById(stat + 'Bar');
@@ -79,7 +79,7 @@ function renderBulldog() {
     }
 
     const affinityBar = document.getElementById('affinityBar');
-    const affinityPercentage = (bulldog.affinity / bulldog.max) * 100;
+    const affinityPercentage = (affinity / bulldog.max) * 100;
     affinityBar.style.width = affinityPercentage + '%';
 
     const dogImage = document.querySelector('.pet-image img');
@@ -88,7 +88,7 @@ function renderBulldog() {
     if(bulldog.isDead){
         dogImage.src = 'images/dawgdeath.png';
         newDogButton.style.display = 'block';
-    } else if(bulldog.isSick){
+    } else if(bulldog.sickLvl > 0) {
         dogImage.src = 'images/dawgsad.png';
         newDogButton.style.display = 'none';
     } else {
@@ -99,33 +99,39 @@ function renderBulldog() {
 
 const LEADERBOARD_URL = 'https://itmgfmwmz8.execute-api.us-east-2.amazonaws.com/api/leaderboard';
 
-async function loadLeaderboard() {
+async function renderLeaderboard() {
     const list = document.getElementById('leaderboardList');
+
     try {
-        const res = await fetch(LEADERBOARD_URL);
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const rows = await res.json();
+        const response = await fetch(LEADERBOARD_URL);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const users = await response.json();
+        const top = users.slice(0, 5);
 
         list.innerHTML = '';
-        if (rows.length === 0) {
-            list.innerHTML = '<li>No Scores Yet</li>';
+
+        if (top.length === 0) {
+            const li = document.createElement('li');
+            li.textContent = 'No scores yet';
+            list.appendChild(li);
             return;
         }
-        for (const row of rows) {
+
+        for (const user of top) {
             const li = document.createElement('li');
-            li.textContent = `${row.User_Name}: ${row.Affinity_Points}`;
+            li.textContent = `${user.User_Name} - ${user.Affinty_Points}`;
             list.appendChild(li);
         }
     } catch (err) {
-        console.error('Leaderboard failed:', err);
-        list.innerHTML = '<li>Could not load leaderboard</li>';
+        console.error('Leaderboard failed to load:', err);
+        list.innerHTML = '<li>Leaderboard unavailable</li>';
     }
 }
 
 function startGame(num = 1) {
     bulldog = new Bulldog(num);
     renderBulldog();
-    loadLeaderboard();
     tick = 0;
     clearInterval(intervalID);
     intervalID = setInterval(() => timeUpdate(), 1000);
@@ -143,6 +149,29 @@ function updateStat(barId) {
 
 function dogDeath() {
     startGame(bulldog.num + 1);
+}
+
+function timeUpdate(){
+    if (bulldog.isDead){
+        clearInterval(intervalID);
+        return;
+    } else{
+        tick += 1;
+        if (tick % 300 == 0){
+            bulldog.ageStats();
+        }
+        if (tick % 6 == 0){
+            bulldog.statDecrease();
+        }
+        renderBulldog();
+        if (bulldog.sickLvl > 0) {
+            bulldog.health = Math.max(0, bulldog.health - bulldog.sickLvl);
+        } else {
+            bulldog.health = Math.min(bulldog.max, bulldog.health + 1);
+        }
+
+        document.getElementById('healthFill').style.width = (bulldog.health / bulldog.max) * 100 + '%';
+    }
 }
 
 startGame();
