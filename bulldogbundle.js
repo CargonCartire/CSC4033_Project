@@ -25,13 +25,14 @@ class Bulldog {
         for (const s of ['food', 'water', 'bath', 'sleep']){
             const percentage = (this[s] / this.max) * 100;
             const bar = document.getElementById(s + 'Bar');
-            if (percentage < 15 || percentage > 85) {
-                this.sickLvl = Math.min(4, this.sickLvl + 1);
-                bar.classList.add('danger'); // Turn the bar red when it is at a certain danger zone
-            } else {
-                this.sickLvl = Math.max(0, this.sickLvl - 1);
-                bar.classList.remove('danger');
+            const isDanger = percentage < 15 || percentage > 85;
+            const isWarning = !isDanger && (percentage < 25 || percentage > 75);
+
+            if (isDanger){
+                this.sickLvl += 1;
             }
+            bar.classList.toggle('danger', isDanger);
+            bar.classList.toggle('warning', isWarning);
         }
     }
 
@@ -133,13 +134,13 @@ function timeUpdate(){
         renderBulldog();
         if (bulldog.sickLvl > 0) {
             bulldog.health = Math.max(0, bulldog.health - bulldog.sickLvl);
+        } else {
+            bulldog.health = Math.min(bulldog.max, bulldog.health + 1);
         }
 
         document.getElementById('healthFill').style.width = (bulldog.health / bulldog.max) * 100 + '%';
     }
 }
-
-startGame();
 
 startGame();
 
