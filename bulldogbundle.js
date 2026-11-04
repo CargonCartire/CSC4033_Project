@@ -9,31 +9,27 @@ class Bulldog {
         this.water = 25,
         this.bath = 25,
         this.sleep = 25,
-        this.isDead = false,
-        this.isSick = false
+        this.sickLvl = 0,
+        this.isDead = false
     }
 
     checkDeath(){
         this.isDead = false;
-        for (const s of ['food', 'water', 'bath', 'sleep']){
-            if (this[s] <= 0 || this[s] >= this.max){
-                this.isDead = true;
-                break;
-            } if (this.health <= 0){
-                this.isDead = true;
-            }
+        if (this.health <= 0){
+            this.isDead = true;
         }
     }
 
     checkSick(){
-        this.isSick = false;
+        this.sickLvl = 0;
         for (const s of ['food', 'water', 'bath', 'sleep']){
             const percentage = (this[s] / this.max) * 100;
             const bar = document.getElementById(s + 'Bar');
             if (percentage < 15 || percentage > 85) {
-                this.isSick = true;
+                this.sickLvl = Math.min(4, this.sickLvl + 1);
                 bar.classList.add('danger'); // Turn the bar red when it is at a certain danger zone
             } else {
+                this.sickLvl = Math.max(0, this.sickLvl - 1);
                 bar.classList.remove('danger');
             }
         }
@@ -64,7 +60,7 @@ class Bulldog {
 let tick = 0;
 let bulldog = null;
 let affinity = 50;
-let intervalID = setInterval(() => timeUpdate(), 6000, tick + 1);
+let intervalID = null;
 
 function renderBulldog() {
     document.querySelector('.health-section h1').textContent =
@@ -72,6 +68,7 @@ function renderBulldog() {
 
     bulldog.checkSick();
     bulldog.checkDeath();
+
 
     for (const stat of ['food', 'water', 'bath', 'sleep']) {
         const bar = document.getElementById(stat + 'Bar');
@@ -90,7 +87,7 @@ function renderBulldog() {
     if(bulldog.isDead){
         dogImage.src = 'images/dawgdeath.png';
         newDogButton.style.display = 'block';
-    } else if(bulldog.isSick){
+    } else if(bulldog.sickLvl > 0) {
         dogImage.src = 'images/dawgsad.png';
         newDogButton.style.display = 'none';
     } else {
@@ -104,7 +101,7 @@ function startGame(num = 1) {
     renderBulldog();
     tick = 0;
     clearInterval(intervalID);
-    intervalID = setInterval(() => timeUpdate(), 6000);
+    intervalID = setInterval(() => timeUpdate(), 1000);
 }
 
 function updateStat(barId) {
@@ -127,13 +124,22 @@ function timeUpdate(){
         return;
     } else{
         tick += 1;
-        if (tick % 1 == 0){
+        if (tick % 300 == 0){
             bulldog.ageStats();
         }
-        bulldog.statDecrease();
+        if (tick % 6 == 0){
+            bulldog.statDecrease();
+        }
         renderBulldog();
+        if (bulldog.sickLvl > 0) {
+            bulldog.health = Math.max(0, bulldog.health - bulldog.sickLvl);
+        }
+
+        document.getElementById('healthFill').style.width = (bulldog.health / bulldog.max) * 100 + '%';
     }
 }
+
+startGame();
 
 startGame();
 
