@@ -99,34 +99,26 @@ function renderBulldog() {
 
 const LEADERBOARD_URL = 'https://itmgfmwmz8.execute-api.us-east-2.amazonaws.com/api/leaderboard';
 
-async function renderLeaderboard() {
+async function loadLeaderboard() {
     const list = document.getElementById('leaderboardList');
-
     try {
-        const response = await fetch('link to API');
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const users = await response.json();
-        const top = users.slice(0, 5);
+        const res = await fetch(LEADERBOARD_URL);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const rows = await res.json();
 
         list.innerHTML = '';
-
-        if (top.length === 0) {
-            const li = document.createElement('li');
-            li.textContent = 'No scores yet';
-            list.appendChild(li);
+        if (rows.length === 0) {
+            list.innerHTML = '<li>No Scores Yet</li>';
             return;
         }
-
-        for (const user of top) {
+        for (const row of rows) {
             const li = document.createElement('li');
-            li.textContent = `${user.username} - ${user.score}`;
+            li.textContent = `${row.User_Name}: ${row.Affinity_Points}`;
             list.appendChild(li);
         }
-
     } catch (err) {
-        console.error('Leaderbaord failed to load:', err);
-        list.innerHTML = '<li>Leaderboard unavailable</li>';
+        console.error('Leaderboard failed:', err);
+        list.innerHTML = '<li>Could not load leaderboard</li>';
     }
 }
 
