@@ -132,6 +132,7 @@ async function renderLeaderboard() {
 function startGame(num = 1) {
     bulldog = new Bulldog(num);
     renderBulldog();
+    renderLeaderboard();
     tick = 0;
     clearInterval(intervalID);
     intervalID = setInterval(() => timeUpdate(), 1000);
