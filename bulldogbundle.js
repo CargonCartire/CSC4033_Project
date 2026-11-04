@@ -97,6 +97,8 @@ function renderBulldog() {
     }
 }
 
+const LEADERBOARD_URL = 'https://itmgfmwmz8.execute-api.us-east-2.amazonaws.com/api/leaderboard';
+
 async function renderLeaderboard() {
     const list = document.getElementById('leaderboardList');
 
@@ -131,7 +133,10 @@ async function renderLeaderboard() {
 function startGame(num = 1) {
     bulldog = new Bulldog(num);
     renderBulldog();
-    renderLeaderboard();
+    loadLeaderboard();
+    tick = 0;
+    clearInterval(intervalID);
+    intervalID = setInterval(() => timeUpdate(), 1000);
 }
 
 function updateStat(barId) {
