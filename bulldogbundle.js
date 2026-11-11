@@ -97,9 +97,42 @@ function renderBulldog() {
     }
 }
 
+const LEADERBOARD_URL = 'https://itmgfmwmz8.execute-api.us-east-2.amazonaws.com/api/leaderboard';
+
+async function renderLeaderboard() {
+    const list = document.getElementById('leaderboardList');
+
+    try {
+        const response = await fetch(LEADERBOARD_URL);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const users = await response.json();
+        const top = users.slice(0, 5);
+
+        list.innerHTML = '';
+
+        if (top.length === 0) {
+            const li = document.createElement('li');
+            li.textContent = 'No scores yet';
+            list.appendChild(li);
+            return;
+        }
+
+        for (const user of top) {
+            const li = document.createElement('li');
+            li.textContent = `${user.User_Name} - ${user.Affinty_Points}`;
+            list.appendChild(li);
+        }
+    } catch (err) {
+        console.error('Leaderboard failed to load:', err);
+        list.innerHTML = '<li>Leaderboard unavailable</li>';
+    }
+}
+
 function startGame(num = 1) {
     bulldog = new Bulldog(num);
     renderBulldog();
+    renderLeaderboard();
     tick = 0;
     clearInterval(intervalID);
     intervalID = setInterval(() => timeUpdate(), 1000);
@@ -143,4 +176,3 @@ function timeUpdate(){
 }
 
 startGame();
-
