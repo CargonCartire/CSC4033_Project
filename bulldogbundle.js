@@ -1,3 +1,18 @@
+require('dotenv').config();
+const path = require('path');
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+const rateLimit = require('express-rate-limit');
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, GetCommand, PutCommand } = require('@aws-sdk/lib-dynamodb');
+
+const TABLE = process.env.DYNAMODB_TABLE || 'User_Info_Table';
+const JWT_SECRET = process.env.JWT_SECRET;
+const IS_PROD = process.env.NODE_ENV === 'production';
+const PORT = Number(process.env.PORT || 3000);
+
 class Bulldog {
     constructor(num = 1) {
         this.num = num,
