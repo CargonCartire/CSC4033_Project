@@ -27,7 +27,7 @@ class Bulldog {
         this.sickLvl = 0;
 
         for (const s of ['food', 'water', 'bath', 'sleep']) {
-            const percentage = (this[s] / this.max) * 100;
+            const percentage = (this[s] / 100) * 100;
             const bar = document.getElementById(s + 'Bar');
             const isDanger = percentage < 15 || percentage > 85;
             const isWarning =
@@ -43,9 +43,32 @@ class Bulldog {
     }
 
     incrimStat(mainStat) {
-        for (const s of ['food', 'water', 'bath', 'sleep']) {
-            const change = (s === mainStat) ? 10 : -2;
-            this[s] = Math.min(this.max, Math.max(0, this[s] + change));
+        const foodDrain = (.20 < (this.food/100)) ? -2 : -1;
+        const waterDrain = (.20 < (this.food/100)) ? -2 : -1;
+        const bathDrain = (.20 < (this.food/100)) ? -2 : -1;
+        const sleepDrain = (.20 < (this.food/100)) ? -2 : -1;
+        switch (mainStat){
+            case "food":
+                this.food = Math.min(this.max, Math.max(0, this[s] + 10));
+                this.sleep = Math.min(this.max, Math.max(0, this[s] - sleepDrain));
+                this.water = Math.min(this.max, Math.max(0, this[s] - waterDrain));
+                break;
+            case "water":
+                this.water = Math.min(this.max, Math.max(0, this[s] + 10));
+                this.sleep = Math.min(this.max, Math.max(0, this[s] - sleepDrain));
+                this.bath = Math.min(this.max, Math.max(0, this[s] - bathDrain));
+                break;
+            case "bath":
+                this.bath = Math.min(this.max, Math.max(0, this[s] + 10));
+                this.food = Math.min(this.max, Math.max(0, this[s] - foodDrain));
+                this.sleep = Math.min(this.max, Math.max(0, this[s] - waterDrain));
+                break;
+            case "sleep":
+                this.sleep = Math.min(this.max, Math.max(0, this[s] + 10));
+                this.food = Math.min(this.max, Math.max(0, this[s] - foodDrain));
+                this.water = Math.min(this.max, Math.max(0, this[s] - waterDrain));
+                this.bath = Math.min(this.max, Math.max(0, this[s] - bathDrain));
+                break;
         }
     }
 
