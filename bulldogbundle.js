@@ -1,4 +1,3 @@
-
 const STATS = ['food', 'water', 'bath', 'sleep'];
 
 class Bulldog {
@@ -456,3 +455,19 @@ document.querySelectorAll('.stat-row button').forEach(button => button.disabled 
 document.getElementById('newDogButton').style.display = 'none';
 pollGame();
 renderLeaderboard();
+
+// A recent heartbeat means this signed-in account has the game open.
+async function sendPresence() {
+    try {
+        const response = await fetch('/api/presence', {
+            method: 'POST', credentials: 'same-origin', cache: 'no-store',
+            signal: AbortSignal.timeout(15000)
+        });
+        if (!response.ok && response.status !== 401) console.warn('Presence update failed:', response.status);
+    } catch (error) {
+        console.warn('Presence update failed:', error);
+    }
+}
+sendPresence();
+setInterval(sendPresence, 60000);
+
