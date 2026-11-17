@@ -203,7 +203,7 @@ function showTemporaryImage(imagePath) {
         imageTimer = null;
 
         renderBulldog();
-    }, 3000);
+    }, 1000);
 }
 
 
