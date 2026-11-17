@@ -255,7 +255,7 @@ function renderBulldog() {
     const affinityBar = document.getElementById('affinityBar');
 
     affinityBar.style.width =
-        Math.max(0, Math.min(100, affinity)) + '%';
+        Math.max(0, Math.min(100, (affinity / 1000) * 100)) + '%';
 
     affinityBar.title = `${affinity} affinity points`;
 
