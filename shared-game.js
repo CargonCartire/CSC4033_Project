@@ -3,6 +3,23 @@
 const STATS = ['food', 'water', 'bath', 'sleep'];
 const SHARED_KEY = '__shared_bulldog__';
 
+// The selected stat gains 10. Only the stats associated with that action
+// drain, by 2 above 20% or 1 at or below 20% of their own maximum.
+function incrimStat(dog, action) {
+  const affected = {
+    food: ['sleep', 'water'],
+    water: ['sleep', 'bath'],
+    bath: ['food', 'sleep'],
+    sleep: ['food', 'water', 'bath']
+  };
+  const clamp = value => Math.min(dog.max, Math.max(0, value));
+  dog[action] = clamp(dog[action] + 10);
+  for (const stat of affected[action]) {
+    const drain = dog[stat] / dog.max > 0.20 ? 2 : 1;
+    dog[stat] = clamp(dog[stat] - drain);
+  }
+}
+
 function newDog(num = 1) {
   return { num, max: 100, drain: 1, health: 100, age: 0,
     food: 50, water: 50, bath: 50, sleep: 50, sickLvl: 0, isDead: false, tick: 0 };
@@ -84,9 +101,7 @@ function registerSharedGame(app, options) {
           if ((user.Last_Bulldog_Action ?? 0) > now - 1000) {
             throw fail(429, 'Please wait a second before another action.');
           }
-          for (const s of STATS) {
-            next.dog[s] = Math.min(next.dog.max, Math.max(0, next.dog[s] + (s === action ? 10 : -2)));
-          }
+          incrimStat(next.dog, action);
           checkDog(next.dog);
         }
       }
@@ -137,4 +152,5 @@ function registerSharedGame(app, options) {
   app.post('/api/game/action', requireAuth, endpoint(true));
 }
 
-module.exports = { registerSharedGame, newDog, advance, checkDog, SHARED_KEY };
+module.exports = { registerSharedGame, newDog, advance, checkDog, incrimStat, SHARED_KEY };
+
