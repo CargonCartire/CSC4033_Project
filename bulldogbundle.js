@@ -225,7 +225,6 @@ async function syncGame(action = null) {
             temporaryImage = null;
         }
         connected = true;
-        statusMessage('Shared game connected');
         return true;
     } catch (err) {
         connected = false;
