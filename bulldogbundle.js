@@ -27,7 +27,7 @@ class Bulldog {
         this.sickLvl = 0;
 
         for (const s of ['food', 'water', 'bath', 'sleep']) {
-            const percentage = (this[s] / 100) * 100;
+            const percentage = (this[s] / this.max) * 100;
             const bar = document.getElementById(s + 'Bar');
             const isDanger = percentage < 15 || percentage > 85;
             const isWarning =
@@ -43,10 +43,10 @@ class Bulldog {
     }
 
     incrimStat(mainStat) {
-        const foodDrain = (.20 < (this.food/100)) ? -2 : -1;
-        const waterDrain = (.20 < (this.food/100)) ? -2 : -1;
-        const bathDrain = (.20 < (this.food/100)) ? -2 : -1;
-        const sleepDrain = (.20 < (this.food/100)) ? -2 : -1;
+        const foodDrain = (.20 < (this.food / this.max)) ? -2 : -1;
+        const waterDrain = (.20 < (this.food / this.max)) ? -2 : -1;
+        const bathDrain = (.20 < (this.food / this.max)) ? -2 : -1;
+        const sleepDrain = (.20 < (this.food / this.max)) ? -2 : -1;
         switch (mainStat){
             case "food":
                 this.food = Math.min(this.max, Math.max(0, this[s] + 10));
