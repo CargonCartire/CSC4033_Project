@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, GetCommand, PutCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, GetCommand, PutCommand, TransactWriteCommand } = require('@aws-sdk/lib-dynamodb');
 
 const TABLE = process.env.DYNAMODB_TABLE || 'User_Info_Table';
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -185,6 +185,11 @@ app.post('/api/logout', (req, res) => {
   res.json({ ok: true });
 });
 
+// Shared dog state; player affinity stays in the individual user records.
+require('./shared-game').registerSharedGame(app, {
+  ddb, TABLE, requireAuth, GetCommand, PutCommand, TransactWriteCommand
+});
+
 // ---------- static pages ----------
 const servePage = (file) => (req, res, next) => {
   res.sendFile(path.join(__dirname, file), (err) => {
@@ -197,6 +202,14 @@ app.get('/index.html', servePage('index.html'));
 app.get('/signup.html', servePage('signup.html'));
 app.get('/dashboard.html', servePage('dashboard.html'));
 app.get('/style.css', servePage('style.css'));
+app.get('/bulldog.html', servePage('bulldog.html'));
+app.get('/bulldogbundle.js', servePage('bulldogbundle.js'));
+app.get('/bulldogbundle.css', servePage('bulldogbundle.css'));
+app.use('/images', express.static(path.join(__dirname, 'images')));
+
+const serverless = require('serverless-http');
+exports.handler = serverless(app);
+
 
 const serverless = require('serverless-http');
 exports.handler = serverless(app);
