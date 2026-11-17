@@ -17,16 +17,18 @@ class Bulldog {
     }
 
     checkDeath() {
-        this.isDead = this.health <= 0;
+        this.isDead = false;
+        if (this.health <= 0) {
+            this.isDead = true;
+        }
     }
 
     checkSick() {
         this.sickLvl = 0;
 
-        for (const stat of STATS) {
-            const percentage = (this[stat] / this.max) * 100;
-            const bar = document.getElementById(stat + 'Bar');
-
+        for (const s of ['food', 'water', 'bath', 'sleep']) {
+            const percentage = (this[s] / this.max) * 100;
+            const bar = document.getElementById(s + 'Bar');
             const isDanger = percentage < 15 || percentage > 85;
             const isWarning =
                 !isDanger && (percentage < 25 || percentage > 75);
@@ -41,19 +43,15 @@ class Bulldog {
     }
 
     incrimStat(mainStat) {
-        for (const stat of STATS) {
-            const change = stat === mainStat ? 10 : -2;
-
-            this[stat] = Math.min(
-                this.max,
-                Math.max(0, this[stat] + change)
-            );
+        for (const s of ['food', 'water', 'bath', 'sleep']) {
+            const change = (s === mainStat) ? 10 : -2;
+            this[s] = Math.min(this.max, Math.max(0, this[s] + change));
         }
     }
 
     statDecrease() {
-        for (const stat of STATS) {
-            this[stat] = Math.max(0, this[stat] - this.drain);
+        for (const s of ['food', 'water', 'bath', 'sleep']) {
+            this[s] = Math.max(0, this[s] - this.drain);
         }
     }
 
@@ -213,23 +211,22 @@ function snapshotStats(dog) {
 
 // GLOBAL VARIABLES
 
+
+// Global variables
+
 let tick = 0;
 let bulldog = null;
+let affinity = 0;
+let busy = false;
+let connected = false;
 let intervalID = null;
 
-// Temporary user affinity value.
-// The backend will eventually store the actual user score.
-let affinity = 50;
-
-// Client-side picture switching and button lockout
+// Client-side temporary image and button lockout
 let temporaryImage = null;
 let imageTimer = null;
 
-const LEADERBOARD_URL =
-    'https://itmgfmwmz8.execute-api.us-east-2.amazonaws.com/api/leaderboard';
 
-
-// RENDER BULLDOG
+// Render the bulldog interface
 
 function renderBulldog() {
 
@@ -238,8 +235,10 @@ function renderBulldog() {
 
     bulldog.checkSick();
     bulldog.checkDeath();
+    document.getElementById('healthFill').style.width = (bulldog.health / bulldog.max) * 100 + '%';
+    document.getElementById('newDogButton').disabled = busy || !connected;
 
-    for (const stat of STATS) {
+    for (const stat of ['food', 'water', 'bath', 'sleep']) {
         const bar = document.getElementById(stat + 'Bar');
         const percentage = (bulldog[stat] / bulldog.max) * 100;
 
@@ -253,6 +252,9 @@ function renderBulldog() {
     // Affinity bar
     // Points are not capped, but the visible bar stays within 0–100%.
     const affinityBar = document.getElementById('affinityBar');
+    const affinityPercentage = Math.min(100, Math.max(0, affinity));
+    affinityBar.parentElement.title = `${affinity} affinity points (your account)`;
+    affinityBar.style.width = affinityPercentage + '%';
 
     affinityBar.style.width =
         Math.max(0, Math.min(100, (affinity / 10000) * 100)) + '%';
@@ -262,31 +264,40 @@ function renderBulldog() {
     // Dog image and buttons
     const dogImage = document.querySelector('.pet-image img');
     const newDogButton = document.getElementById('newDogButton');
+    const statButtons = document.querySelectorAll('.stat-row button');
 
-    newDogButton.style.display = bulldog.isDead ? 'block' : 'none';
+    // Disable buttons if the dog is dead or a temporary image is active
+    const buttonsLocked = busy || !connected || bulldog.isDead || temporaryImage !== null;
 
-    // Disable stat buttons during death or temporary picture switching
-    for (const button of document.querySelectorAll('.stat-row button')) {
-        button.disabled = bulldog.isDead || temporaryImage !== null;
+    for (const button of statButtons) {
+        button.disabled = buttonsLocked;
     }
 
-    // Death takes priority over temporary images
+    // Death takes priority over any temporary picture
     if (bulldog.isDead) {
         dogImage.src = 'images/dawgdeath.png';
-    }
-    else if (temporaryImage !== null) {
-        dogImage.src = temporaryImage;
-    }
-    else if (bulldog.sickLvl > 0) {
-        dogImage.src = 'images/dawgsad.png';
+        newDogButton.style.display = 'block';
     }
     else {
-        dogImage.src = 'images/dawghappy.png';
+        newDogButton.style.display = 'none';
+
+        if (temporaryImage !== null) {
+            dogImage.src = temporaryImage;
+        }
+        else if (bulldog.sickLvl > 0) {
+            dogImage.src = 'images/dawgsad.png';
+        }
+        else {
+            dogImage.src = 'images/dawghappy.png';
+        }
     }
 }
 
 
-// LEADERBOARD
+// Leaderboard API
+
+const LEADERBOARD_URL =
+    'https://itmgfmwmz8.execute-api.us-east-2.amazonaws.com/api/leaderboard';
 
 async function renderLeaderboard() {
     const list = document.getElementById('leaderboardList');
@@ -319,25 +330,29 @@ async function renderLeaderboard() {
             list.appendChild(li);
         }
     }
-    catch (error) {
-        console.error('Leaderboard failed to load:', error);
+    catch (err) {
+        console.error('Leaderboard failed to load:', err);
         list.innerHTML = '<li>Leaderboard unavailable</li>';
     }
 }
 
 
-// CLIENT-SIDE PICTURE SWITCHING
+// Client-side temporary image switching and button lockout
 
 function showTemporaryImage(imagePath) {
+    // Prevent temporary images from overriding death
     if (bulldog.isDead) {
         return;
     }
 
+    // Cancel any previous image timeout
     clearTimeout(imageTimer);
 
+    // Set the temporary image and activate button lockout
     temporaryImage = imagePath;
     renderBulldog();
 
+    // Remove temporary image and lockout after 3 seconds
     imageTimer = setTimeout(() => {
         temporaryImage = null;
         imageTimer = null;
@@ -347,131 +362,74 @@ function showTemporaryImage(imagePath) {
 }
 
 
-// START GAME
-
-function startGame(num = 1) {
-
-    // Clear previous temporary image and button lockout
-    clearTimeout(imageTimer);
-    imageTimer = null;
-    temporaryImage = null;
-
-    bulldog = new Bulldog(num);
-
-    renderBulldog();
-    renderLeaderboard();
-
-    // Existing temporary tick system
-    tick = 0;
-    clearInterval(intervalID);
-
-    intervalID = setInterval(timeUpdate, 1000);
+// The server owns the dog and its timer. Browsers only display snapshots.
+function statusMessage(message) {
+    document.getElementById('gameStatus').textContent = message;
 }
 
-
-// STAT BUTTON INPUT
-
-function updateStat(barId) {
-
-    // Prevent input during death or the 1-second lockout
-    if (bulldog.isDead || temporaryImage !== null) {
-        return;
+async function syncGame(action = null) {
+    if (busy) return false;
+    busy = true;
+    if (bulldog) renderBulldog();
+    try {
+        const response = await fetch(action ? '/api/game/action' : '/api/game', {
+            method: action ? 'POST' : 'GET',
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: action ? { 'Content-Type': 'application/json' } : {},
+            ...(action ? { body: JSON.stringify({ action, dogNum: bulldog.num }) } : {}),
+            signal: AbortSignal.timeout(15000)
+        });
+        if (response.status === 401) {
+            window.location.replace('/index.html');
+            return false;
+        }
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Could not load the game.');
+        const changedDog = bulldog && bulldog.num !== data.dog.num;
+        bulldog = Object.assign(new Bulldog(), data.dog);
+        affinity = data.affinityPoints;
+        if (changedDog) {
+            clearTimeout(imageTimer);
+            temporaryImage = null;
+        }
+        connected = true;
+        return true;
+    } catch (err) {
+        connected = false;
+        statusMessage(err.message + ' Reconnecting…');
+        return false;
+    } finally {
+        busy = false;
+        if (bulldog) renderBulldog();
     }
+}
 
+async function updateStat(barId) {
+    if (!bulldog || !connected || busy || bulldog.isDead || temporaryImage !== null) return;
     const images = {
-        food: 'images/dawgeat.png',
-        water: 'images/dawgdrink.png',
-        bath: 'images/dawgbath.png',
-        sleep: 'images/dawgsleep.png'
+        food: 'images/dawgeat.png', water: 'images/dawgdrink.png',
+        bath: 'images/dawgbath.png', sleep: 'images/dawgsleep.png'
     };
-
-    const selectedStat = barId.replace('Bar', '');
-
-    if (!Object.hasOwn(images, selectedStat)) {
-        return;
-    }
-
-    // Save stat values before the action
-    const before = snapshotStats(bulldog);
-    const maximumAtAction = bulldog.max;
-
-    // Apply the normal stat changes
-    bulldog.incrimStat(selectedStat);
-
-    // Save stat values after the action
-    const after = snapshotStats(bulldog);
-
-    // Calculate the user's affinity change
-    const affinityChange = calculateAffinityChange(
-        before,
-        after,
-        maximumAtAction,
-        selectedStat
-    );
-
-    // Local prototype: update the user affinity display.
-    // The backend will eventually calculate and persist this value.
-    affinity += affinityChange;
-
-    // Show the action picture and disable buttons for 1 second
-    showTemporaryImage(images[selectedStat]);
-}
-
-
-// NEW DOG
-
-function dogDeath() {
-    if (bulldog.isDead) {
-        startGame(bulldog.num + 1);
+    const stat = barId.replace('Bar', '');
+    if (!images[stat]) return;
+    if (await syncGame(stat)) {
+        showTemporaryImage(images[stat]);
+        renderLeaderboard();
     }
 }
 
-
-// TEMPORARY GAME SIMULATION
-
-function timeUpdate() {
-
-    if (bulldog.isDead) {
-        clearInterval(intervalID);
-        intervalID = null;
-        return;
-    }
-
-    tick += 1;
-
-    if (tick % 300 === 0) {
-        bulldog.ageStats();
-    }
-
-    if (tick % 6 === 0) {
-        bulldog.statDecrease();
-    }
-
-    // Calculate sickness before updating health
-    bulldog.checkSick();
-
-    if (bulldog.sickLvl > 0) {
-        bulldog.health = Math.max(
-            0,
-            bulldog.health - bulldog.sickLvl
-        );
-    }
-    else {
-        bulldog.health = Math.min(
-            bulldog.max,
-            bulldog.health + 1
-        );
-    }
-
-    renderBulldog();
-
-    if (bulldog.isDead) {
-        clearInterval(intervalID);
-        intervalID = null;
-    }
+async function dogDeath() {
+    if (!bulldog || !connected || busy || !bulldog.isDead) return;
+    await syncGame('newDog');
 }
 
+async function pollGame() {
+    await syncGame();
+    intervalID = setTimeout(pollGame, 1000);
+}
 
-// INITIALIZE
-
-startGame();
+document.querySelectorAll('.stat-row button').forEach(button => button.disabled = true);
+document.getElementById('newDogButton').style.display = 'none';
+pollGame();
+renderLeaderboard();
