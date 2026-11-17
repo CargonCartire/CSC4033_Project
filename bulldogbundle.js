@@ -8,10 +8,10 @@ class Bulldog {
         this.drain = 1;
         this.health = 100;
         this.age = 0;
-        this.food = 25;
-        this.water = 25;
-        this.bath = 25;
-        this.sleep = 25;
+        this.food = 50;
+        this.water = 50;
+        this.bath = 50;
+        this.sleep = 50;
         this.sickLvl = 0;
         this.isDead = false;
     }
