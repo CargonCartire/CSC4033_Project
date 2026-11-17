@@ -1,3 +1,6 @@
+
+const STATS = ['food', 'water', 'bath', 'sleep'];
+
 class Bulldog {
     constructor(num = 1) {
         this.num = num;
@@ -27,7 +30,8 @@ class Bulldog {
             const percentage = (this[s] / this.max) * 100;
             const bar = document.getElementById(s + 'Bar');
             const isDanger = percentage < 15 || percentage > 85;
-            const isWarning = !isDanger && (percentage < 25 || percentage > 75);
+            const isWarning =
+                !isDanger && (percentage < 25 || percentage > 75);
 
             if (isDanger) {
                 this.sickLvl += 1;
@@ -59,7 +63,153 @@ class Bulldog {
             this.drain += 0.5;
         }
     }
-};
+}
+
+
+// AFFINITY SCORING SYSTEM
+
+// Determines which condition a stat is currently in.
+// 0 = normal, 1 = yellow, 2 = red, 3 = fatal
+
+function conditionLevel(percentage) {
+    if (percentage <= 0 || percentage >= 100) {
+        return 3;
+    }
+
+    if (percentage < 15 || percentage > 85) {
+        return 2;
+    }
+
+    if (percentage < 25 || percentage > 75) {
+        return 1;
+    }
+
+    return 0;
+}
+
+
+// Calculates recovery bonuses when a stat moves
+// from a worse condition into a healthier condition.
+
+function recoveryBonus(beforeLevel, afterLevel) {
+    let bonus = 0;
+
+    for (let level = beforeLevel; level > afterLevel; level--) {
+        if (level === 3) {
+            bonus += 30; // Fatal to red
+        }
+
+        if (level === 2) {
+            bonus += 20; // Red to yellow
+        }
+
+        if (level === 1) {
+            bonus += 10; // Yellow to normal
+        }
+    }
+
+    return bonus;
+}
+
+
+// Calculates one stat's contribution to affinity.
+// This does not include the default +20 button reward.
+
+function scoreStatChange(beforeValue, afterValue, max, attemptedChange) {
+
+    const beforePercent = (beforeValue / max) * 100;
+    const afterPercent = (afterValue / max) * 100;
+
+    const beforeLevel = conditionLevel(beforePercent);
+    const afterLevel = conditionLevel(afterPercent);
+
+    // Distance from the ideal midpoint of 50%
+    const beforeDistance = Math.abs(beforePercent - 50);
+    const afterDistance = Math.abs(afterPercent - 50);
+
+    const improving = afterDistance < beforeDistance - 1e-9;
+    const worsening = afterDistance > beforeDistance + 1e-9;
+
+    // Recovery into a healthier condition
+    if (afterLevel < beforeLevel) {
+        return 10 + recoveryBonus(beforeLevel, afterLevel);
+    }
+
+    // Improvement while remaining within the same unhealthy condition
+    if (beforeLevel > 0 && afterLevel === beforeLevel && improving) {
+        return 10;
+    }
+
+    // Normal stats receive no additional award or penalty
+    if (afterLevel === 0) {
+        return 0;
+    }
+
+    // Attempting to worsen a stat already at a fatal boundary
+    const pushesPastZero = beforeValue <= 0 && attemptedChange < 0;
+    const pushesPastMax = beforeValue >= max && attemptedChange > 0;
+
+    if (
+        beforeLevel === 3 &&
+        afterLevel === 3 &&
+        afterValue === beforeValue &&
+        (pushesPastZero || pushesPastMax)
+    ) {
+        return -110;
+    }
+
+    // Apply the penalty for the final condition
+    const penaltyByLevel = [0, -20, -40, -100];
+
+    let contribution = penaltyByLevel[afterLevel];
+
+    // Additional -10 for worsening within the same unhealthy condition
+    if (
+        beforeLevel > 0 &&
+        beforeLevel === afterLevel &&
+        worsening
+    ) {
+        contribution -= 10;
+    }
+
+    return contribution;
+}
+
+
+// Combines all four stat contributions with the
+// default +20 reward for one button press.
+
+function calculateAffinityChange(before, after, max, selectedStat) {
+    let change = 20;
+
+    for (const stat of STATS) {
+        const attemptedChange = stat === selectedStat ? 10 : -2;
+
+        change += scoreStatChange(
+            before[stat],
+            after[stat],
+            max,
+            attemptedChange
+        );
+    }
+
+    return change;
+}
+
+
+// Records the four stats before or after a button press.
+
+function snapshotStats(dog) {
+    return {
+        food: dog.food,
+        water: dog.water,
+        bath: dog.bath,
+        sleep: dog.sleep
+    };
+}
+
+
+// GLOBAL VARIABLES
 
 
 // Global variables
@@ -79,6 +229,7 @@ let imageTimer = null;
 // Render the bulldog interface
 
 function renderBulldog() {
+
     document.querySelector('.health-section h1').textContent =
         `Techie ${bulldog.num} (${bulldog.age} Days Old)`;
 
@@ -94,11 +245,23 @@ function renderBulldog() {
         bar.style.width = percentage + '%';
     }
 
+    // Health bar
+    document.getElementById('healthFill').style.width =
+        (bulldog.health / bulldog.max) * 100 + '%';
+
+    // Affinity bar
+    // Points are not capped, but the visible bar stays within 0–100%.
     const affinityBar = document.getElementById('affinityBar');
     const affinityPercentage = Math.min(100, Math.max(0, affinity));
     affinityBar.parentElement.title = `${affinity} affinity points (your account)`;
     affinityBar.style.width = affinityPercentage + '%';
 
+    affinityBar.style.width =
+        Math.max(0, Math.min(100, (affinity / 10000) * 100)) + '%';
+
+    affinityBar.title = `${affinity} affinity points`;
+
+    // Dog image and buttons
     const dogImage = document.querySelector('.pet-image img');
     const newDogButton = document.getElementById('newDogButton');
     const statButtons = document.querySelectorAll('.stat-row button');
@@ -141,7 +304,10 @@ async function renderLeaderboard() {
 
     try {
         const response = await fetch(LEADERBOARD_URL);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
 
         const users = await response.json();
         const top = users.slice(0, 5);
@@ -157,7 +323,10 @@ async function renderLeaderboard() {
 
         for (const user of top) {
             const li = document.createElement('li');
-            li.textContent = `${user.User_Name} - ${user.Affinty_Points}`;
+
+            li.textContent =
+                `${user.User_Name} - ${user.Affinty_Points}`;
+
             list.appendChild(li);
         }
     }
