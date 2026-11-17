@@ -3,6 +3,39 @@
 const STATS = ['food', 'water', 'bath', 'sleep'];
 const SHARED_KEY = '__shared_bulldog__';
 
+function conditionLevel(percent) {
+  if (percent <= 0 || percent >= 100) return 3;
+  if (percent < 15 || percent > 85) return 2;
+  if (percent < 25 || percent > 75) return 1;
+  return 0;
+}
+
+function scoreStatChange(before, after, max, attemptedChange) {
+  const beforePercent = before / max * 100;
+  const afterPercent = after / max * 100;
+  const beforeLevel = conditionLevel(beforePercent);
+  const afterLevel = conditionLevel(afterPercent);
+  if (afterLevel < beforeLevel) {
+    let score = 10;
+    for (let level = beforeLevel; level > afterLevel; level--) score += level * 10;
+    return score;
+  }
+  const beforeDistance = Math.abs(beforePercent - 50);
+  const afterDistance = Math.abs(afterPercent - 50);
+  if (beforeLevel > 0 && afterLevel === beforeLevel && afterDistance < beforeDistance - 1e-9) return 10;
+  if (afterLevel === 0) return 0;
+  if (beforeLevel === 3 && afterLevel === 3 && after === before &&
+      ((before <= 0 && attemptedChange < 0) || (before >= max && attemptedChange > 0))) return -110;
+  let score = [0, -20, -40, -100][afterLevel];
+  if (beforeLevel > 0 && beforeLevel === afterLevel && afterDistance > beforeDistance + 1e-9) score -= 10;
+  return score;
+}
+
+function calculateAffinityChange(before, after, max, attemptedChanges) {
+  return 20 + STATS.reduce((sum, stat) =>
+    sum + scoreStatChange(before[stat], after[stat], max, attemptedChanges[stat] ?? 0), 0);
+}
+
 function newDog(num = 1) {
   return { num, max: 100, drain: 1, health: 100, age: 0,
     food: 50, water: 50, bath: 50, sleep: 50, sickLvl: 0, isDead: false, tick: 0 };
@@ -73,6 +106,7 @@ function registerSharedGame(app, options) {
       const old = await getRecord();
       const now = clock();
       const next = advance(old, now);
+      let affinityChange = 0;
       if (action) {
         if (expectedNum !== next.dog.num) throw fail(409, 'The dog changed. Please try again.');
         if (action === 'newDog') {
@@ -84,9 +118,13 @@ function registerSharedGame(app, options) {
           if ((user.Last_Bulldog_Action ?? 0) > now - 1000) {
             throw fail(429, 'Please wait a second before another action.');
           }
+          const before = { ...next.dog };
+          const attemptedChanges = {};
           for (const s of STATS) {
+            attemptedChanges[s] = s === action ? 10 : -2;
             next.dog[s] = Math.min(next.dog.max, Math.max(0, next.dog[s] + (s === action ? 10 : -2)));
           }
+          affinityChange = calculateAffinityChange(before, next.dog, before.max, attemptedChanges);
           checkDog(next.dog);
         }
       }
@@ -104,13 +142,13 @@ function registerSharedGame(app, options) {
             { Update: { TableName: TABLE, Key: { Email: email },
               UpdateExpression: 'SET Last_Bulldog_Action = :now ADD Affinty_Points :point',
               ConditionExpression: 'attribute_exists(Password) AND (attribute_not_exists(Last_Bulldog_Action) OR Last_Bulldog_Action <= :cutoff)',
-              ExpressionAttributeValues: { ':now': now, ':point': 10, ':cutoff': now - 1000 } } }
+              ExpressionAttributeValues: { ':now': now, ':point': affinityChange, ':cutoff': now - 1000 } } }
           ] }));
-          user.Affinty_Points = (user.Affinty_Points ?? 0) + 1;
+          user.Affinty_Points = (user.Affinty_Points ?? 0) + affinityChange;
         } else {
           await ddb.send(new PutCommand(put));
         }
-        return publicState(next, user);
+        return { ...publicState(next, user), affinityChange };
       } catch (err) {
         if (!conflict(err)) throw err;
       }
@@ -137,4 +175,5 @@ function registerSharedGame(app, options) {
   app.post('/api/game/action', requireAuth, endpoint(true));
 }
 
-module.exports = { registerSharedGame, newDog, advance, checkDog, SHARED_KEY };
+module.exports = { registerSharedGame, newDog, advance, checkDog, conditionLevel, scoreStatChange, calculateAffinityChange, SHARED_KEY };
+
