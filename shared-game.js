@@ -106,7 +106,7 @@ function registerSharedGame(app, options) {
               ConditionExpression: 'attribute_exists(Password) AND (attribute_not_exists(Last_Bulldog_Action) OR Last_Bulldog_Action <= :cutoff)',
               ExpressionAttributeValues: { ':now': now, ':point': 10, ':cutoff': now - 1000 } } }
           ] }));
-          user.Affinty_Points = (user.Affinty_Points ?? 0) + 1;
+          user.Affinty_Points = (user.Affinty_Points ?? 0) + 10;
         } else {
           await ddb.send(new PutCommand(put));
         }
