@@ -88,7 +88,8 @@ body.game-page {
 .health-bar,
 .stat-bar {
     overflow: hidden;
-    background: var(--track);
+    background: var(--track, #3b3f50);
+    border: 1px solid var(--border, #353849);
     border-radius: 999px;
 }
 
@@ -241,8 +242,22 @@ body.game-page {
     transition: width 180ms ease, background-color 180ms ease;
 }
 
-.stat-fill.warning { background: var(--warning); }
-.stat-fill.danger { background: var(--danger); }
+/* The fill keeps its true percentage width. The colored track and outline
+   remain visible even at 0%, when the fill itself has no width. */
+.stat-fill.warning { background: var(--warning, #eab308); }
+.stat-fill.danger { background: var(--danger, #dc2626); }
+
+.stat-bar:has(.stat-fill.warning) {
+    background: color-mix(in srgb, var(--warning, #eab308) 18%, var(--track, #3b3f50));
+    border-color: var(--warning, #eab308);
+    box-shadow: 0 0 0 1px var(--warning, #eab308);
+}
+
+.stat-bar:has(.stat-fill.danger) {
+    background: color-mix(in srgb, var(--danger, #dc2626) 18%, var(--track, #3b3f50));
+    border-color: var(--danger, #dc2626);
+    box-shadow: 0 0 0 1px var(--danger, #dc2626);
+}
 
 .stat-row button {
     width: 42px;
