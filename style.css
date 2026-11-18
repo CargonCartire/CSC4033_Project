@@ -6,6 +6,12 @@
   --border: #d9dce6;
   --accent: #4f46e5;
   --accent-hover: #4338ca;
+  /* Shared surfaces and status colors used by the game. */
+  --panel: #f8f9fc;
+  --track: #e6e9f1;
+  --success: #22a45a;
+  --warning: #eab308;
+  --danger: #dc2626;
   --error-bg: #fdecec;
   --error-text: #b42318;
 }
@@ -17,6 +23,8 @@
     --text: #eef0f7;
     --muted: #9a9fb3;
     --border: #353849;
+    --panel: #242734;
+    --track: #3b3f50;
     --error-bg: #3a1d1d;
     --error-text: #ff9b94;
   }
