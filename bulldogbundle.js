@@ -1,3 +1,4 @@
+
 const STATS = ['food', 'water', 'bath', 'sleep'];
 
 class Bulldog {
@@ -271,17 +272,9 @@ function renderBulldog() {
     document.getElementById('healthFill').style.width =
         (bulldog.health / bulldog.max) * 100 + '%';
 
-    // Affinity bar
-    // Points are not capped, but the visible bar stays within 0–100%.
-    const affinityBar = document.getElementById('affinityBar');
-    const affinityPercentage = Math.min(100, Math.max(0, affinity));
-    affinityBar.parentElement.title = `${affinity} affinity points (your account)`;
-    affinityBar.style.width = affinityPercentage + '%';
-
-    affinityBar.style.width =
-        Math.max(0, Math.min(100, (affinity / 10000) * 100)) + '%';
-
-    affinityBar.title = `${affinity} affinity points`;
+    // Display the authenticated user's affinity as a number.
+    document.getElementById('affinityValue').textContent =
+        `Your Affinity: ${Number(affinity).toLocaleString('en-US')}`;
 
     // Dog image and buttons
     const dogImage = document.querySelector('.pet-image img');
@@ -470,4 +463,3 @@ async function sendPresence() {
 }
 sendPresence();
 setInterval(sendPresence, 60000);
-
