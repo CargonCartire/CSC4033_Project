@@ -53,7 +53,7 @@ body {
     font-size: 22px;
 }
 
-/* Affinity bar */
+/* Affinity score */
 
 .affinity-row {
     display: flex;
@@ -62,26 +62,10 @@ body {
     margin-bottom: 5px;
 }
 
-.affinity-bar {
-    position: relative;
-    width: 320px;
-    height: 15px;
-    border: 2px solid #555;
-    background-color: white;
-}
-
-.affinity-fill {
-    height: 100%;
-    background-color: yellow;
-}
-
-.affinity-bar span {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
+#affinityValue {
+    font-size: 18px;
+    font-weight: normal;
     text-align: center;
-    font-size: 14px;
 }
 
 /* Dog and Leaderboard */
