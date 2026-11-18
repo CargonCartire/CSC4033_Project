@@ -3,82 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feed yo Bulldog</title>
-    <link rel="stylesheet" href="bulldogbundle.css">
+    <title>Bulldog Tomogachi</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/bulldogbundle.css">
 </head>
-
-<body>
-    <div class="game-container">
-        <!-- Health -->
-        <div class="health-section">
-            <div class="health-bar">
-                <div id="healthFill" class="health-fill"></div>
-                <span>Health</span>
+<body class="game-page">
+    <main class="game-container card">
+        <header class="game-header">
+            <div>
+                <h2>Bulldog Tomogachi</h2>
             </div>
+            <a class="dashboard-link" href="/dashboard.html">Dashboard</a>
+        </header>
 
-            <div class="affinity-row">
-                <span id="affinityValue">Your Affinity: 0</span>
-            </div>
-            
+        <section class="health-section" aria-label="Bulldog status">
+            <!-- Keep this h1 inside .health-section: the game JS updates it. -->
             <h1>Techie __ (__ Days Old)</h1>
-        </div>
+            <div class="game-metrics">
+                <div class="health-panel">
+                    <span class="metric-label">Health</span>
+                    <div class="health-bar" aria-label="Bulldog health">
+                        <div id="healthFill" class="health-fill"></div>
+                    </div>
+                </div>
+                <div class="affinity-row">
+                    <!-- The JS provides the full 'Your Affinity: N' text. -->
+                    <span id="affinityValue">Your Affinity: 0</span>
+                </div>
+            </div>
+        </section>
 
-        <!-- Dog and leaderboard -->
         <div class="main-info">
-            <div class="new-dog-section">
-                <button id="newDogButton" onclick="dogDeath()">
-                    New Dog
-                </button>
-            </div>
-            <div class="pet-image">
-                <img src="images/dawghappy.png" alt="Pet">
-            </div>
-            <div class="leaderboard">
-                <h2>Leaderboard:</h2>
-                <ol id = leaderboardList>
-                    <li>Loading...<li>
+            <section class="pet-panel" aria-label="Bulldog picture">
+                <div class="pet-image">
+                    <!-- Keep the existing hand-drawn dog images; the JS swaps src. -->
+                    <img src="images/dawghappy.png" alt="Your hand-drawn Bulldog, Techie">
+                </div>
+                <div class="new-dog-section">
+                    <button id="newDogButton" type="button" onclick="dogDeath()">New Dog</button>
+                </div>
+            </section>
+
+            <section class="leaderboard" aria-label="Leaderboard">
+                <h2>Leaderboard</h2>
+                <ol id="leaderboardList">
+                    <li>Loading...</li>
                 </ol>
-            </div>
+            </section>
         </div>
 
+        <section class="stats" aria-label="Care for Techie">
+            <div class="stats-header">
+                <h2>Care for Techie</h2>
+                <div class="stat-legend" aria-label="Stat conditions">
+                    <span><i class="legend-dot normal-dot" aria-hidden="true"></i>Normal</span>
+                    <span><i class="legend-dot warning-dot" aria-hidden="true"></i>Warning</span>
+                    <span><i class="legend-dot danger-dot" aria-hidden="true"></i>Danger</span>
+                </div>
+            </div>
 
-        <!-- Stats, Bars, Buttons -->
-        <div class="stats">
             <div class="stat-row">
                 <span class="stat-name">Food</span>
-                <div class="stat-bar">
-                    <div id="foodBar" class="stat-fill"></div>
-                </div>
-                <button onclick="updateStat('foodBar')">+</button>
+                <div class="stat-bar" aria-label="Food level"><div id="foodBar" class="stat-fill"></div></div>
+                <button type="button" aria-label="Feed Techie" onclick="updateStat('foodBar')">+</button>
             </div>
-
             <div class="stat-row">
                 <span class="stat-name">Water</span>
-                <div class="stat-bar">
-                    <div id="waterBar" class="stat-fill"></div>
-                </div>
-                <button onclick="updateStat('waterBar')">+</button>
+                <div class="stat-bar" aria-label="Water level"><div id="waterBar" class="stat-fill"></div></div>
+                <button type="button" aria-label="Give Techie water" onclick="updateStat('waterBar')">+</button>
             </div>
-
             <div class="stat-row">
                 <span class="stat-name">Bath</span>
-                <div class="stat-bar">
-                    <div id="bathBar" class="stat-fill"></div>
-                </div>
-                <button onclick="updateStat('bathBar')">+</button>
+                <div class="stat-bar" aria-label="Bath level"><div id="bathBar" class="stat-fill"></div></div>
+                <button type="button" aria-label="Bathe Techie" onclick="updateStat('bathBar')">+</button>
             </div>
-
             <div class="stat-row">
                 <span class="stat-name">Sleep</span>
-                <div class="stat-bar">
-                    <div id="sleepBar" class="stat-fill"></div>
-                </div>
-                <button onclick="updateStat('sleepBar')">+</button>
+                <div class="stat-bar" aria-label="Sleep level"><div id="sleepBar" class="stat-fill"></div></div>
+                <button type="button" aria-label="Let Techie sleep" onclick="updateStat('sleepBar')">+</button>
             </div>
-    </div>
-</div>
-        </div>
-    </div>
-    <script src="bulldogbundle.js"></script>
+        </section>
+
+        <!-- Required by statusMessage() in bulldogbundle.js. -->
+        <p id="gameStatus" class="game-status" role="status" aria-live="polite"></p>
+    </main>
+    <script src="/bulldogbundle.js"></script>
 </body>
 </html>
